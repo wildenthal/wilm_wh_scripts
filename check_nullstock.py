@@ -3,6 +3,11 @@ import csv
 import pandas as pd
 from datetime import datetime
 
+'''
+Searches stocklist YYYY-MM-DD.htm file for annulled items and checks whether they were present the day before. 
+Segregates into items that were annulled manually through logs.htm file.
+'''
+
 def main():
     morningstr = pd.to_datetime('today').strftime('%Y-%m-%d')
     nightstr = (pd.to_datetime('today')-pd.Timedelta('1 days')).strftime('%Y-%m-%d')
