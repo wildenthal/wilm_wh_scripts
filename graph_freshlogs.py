@@ -4,7 +4,10 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import numpy as np
 
-#monitors how stock for fresh items evolved over the week
+'''
+Scrapes logs to find how stock for fresh items evolved over the week.
+Generates graphs to visualize.
+'''
 
 def main():
     if input('Scrape pages? y/n: ')=='y':
