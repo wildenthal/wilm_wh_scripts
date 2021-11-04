@@ -3,11 +3,6 @@ import csv
 import pandas as pd
 from datetime import datetime
 
-'''
-Searches stocklist YYYY-MM-DD.htm file for annulled items and checks whether they were present the day before. 
-Segregates into items that were annulled manually through logs.htm file.
-'''
-
 def main():
     morningstr = pd.to_datetime('today').strftime('%Y-%m-%d')
     nightstr = (pd.to_datetime('today')-pd.Timedelta('1 days')).strftime('%Y-%m-%d')
@@ -50,6 +45,7 @@ def main():
         print()
         print('We did not set these to zero: ')
         warnvalues = prewarnvalues[~prewarnvalues['SKU'].isin(ournulls['SKU'].values)]
+        pd.set_option('display.max_rows', None)
         print(warnvalues)
         print()
        
@@ -62,11 +58,11 @@ def scrape(morningstr,nightstr):
 
     csv_writer.writerow(['SKU','initial','change','final','time'])
 
-    sku_iter = soup.find_all('div',class_='log__sku')
+    sku_iter = soup.find_all('div',class_='log__product-sku')
     initial_iter = soup.find_all('div',class_='log__quantity-box log__quantity-box--yellow log__quantity-box--long')
     change_iter = soup.find_all(lambda tag: tag.name == 'div' and tag.get('class') == ['log__quantity-box'])
     final_iter = soup.find_all('div',class_='log__quantity-box log__quantity-box--green log__quantity-box--long')
-    time_iter = soup.find_all('div',class_='log__timestamp') 
+    time_iter = soup.find_all('td',class_='log__date') 
     zipped = zip(sku_iter,initial_iter,change_iter,final_iter,time_iter)
 
     for item in zipped:
@@ -74,7 +70,11 @@ def scrape(morningstr,nightstr):
         initial = int(item[1].text)
         change = int(item[2].text)
         final = int(item[3].text)
-        time = datetime.strptime(item[4].text,' %m/%d/%Y, %I:%M:%S %p ').date()
+        timestr = item[4].find_all('div')[0].text
+        try:
+            time = datetime.strptime(timestr,'%m/%d/%Y, %I:%M:%S %p').date()
+        except ValueError:
+            time = datetime.strptime(timestr,'%d/%m/%Y, %I:%M:%S %p').date()
         if initial > final:
             change = -1*change
         if change != 0:
